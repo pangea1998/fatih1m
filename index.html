@@ -3,80 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bağış Sayfası</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Fatih'in Destek Parası - Bağış Sayfası</title>
+    <meta name="description" content="Fatih'e destek olmak için bağış yapın. Güvenli ödeme ile 200, 500, 1000 veya 5000 TL bağış seçenekleri.">
+    <meta name="keywords" content="bağış, destek, Fatih, yardım, para">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <meta name="description" content="Fatih'in Borsa Parası için bağış sayfası">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <div class="header-icon">
-            <i class="fas fa-chart-line"></i>
-        </div>
-        <h1 class="title">Fatih'in Borsa Parası</h1>
-        
-        <div class="donation-progress">
-            <div class="progress-label">Toplanan Bağış</div>
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
+        <!-- Header Section -->
+        <header class="header">
+            <div class="icon-container">
+                <i class="fas fa-chart-line pulse-animation"></i>
             </div>
+            <h1 class="main-title">
+                Fatih'in Destek Parası
+                <div class="title-underline"></div>
+            </h1>
+            <p class="subtitle">Hedefimize ulaşmak için desteğinize ihtiyacımız var</p>
+        </header>
+
+        <!-- Progress Section -->
+        <section class="progress-section">
             <div class="progress-info">
-                <span id="currentAmount">0</span> / <span id="targetAmount">300.000</span> TL
+                <div class="current-amount">
+                    <span class="amount-label">Toplanan</span>
+                    <span class="amount-value" id="currentAmount">₺0</span>
+                </div>
+                <div class="target-amount">
+                    <span class="amount-label">Hedef</span>
+                    <span class="amount-value">₺300.000</span>
+                </div>
             </div>
-        </div>
-        
-        <button class="donate-button" id="donateButton">
-            <i class="fas fa-hand-holding-heart"></i> Bağış Yap
-        </button>
-        
-        <div class="donation-message">
-            <p>Bağışlarınız sayesinde Fatih borsa yatırımlarını gerçekleştirebilecek!</p>
-        </div>
-        
-        <div class="payment-modal" id="paymentModal">
-            <div class="modal-content">
-                <span class="close-button" id="closeModal">&times;</span>
-                <div class="modal-header">
-                    <div class="modal-icon">
-                        <i class="fas fa-donate"></i>
-                    </div>
-                    <h2 class="modal-title">Bağış Miktarı Seçin</h2>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
                 </div>
-                
+                <div class="progress-percentage" id="progressPercentage">0%</div>
+            </div>
+        </section>
+
+        <!-- Main Donation Button -->
+        <section class="donation-section">
+            <button class="main-donate-btn" id="openModalBtn">
+                <i class="fas fa-hand-holding-heart"></i>
+                <span>Bağış Yap</span>
+            </button>
+            <p class="secure-payment">
+                <i class="fas fa-lock"></i>
+                Güvenli ödeme ile destekle
+            </p>
+        </section>
+
+        <!-- Info Section -->
+        <section class="info-section">
+            <div class="info-card">
+                <i class="fas fa-info-circle"></i>
+                <h3>Neden Destek?</h3>
+                <p>Fatih'in projelerine ve çalışmalarına destek olmak için bağış yapabilirsiniz. Her katkı değerlidir!</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Donation Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Bağış Miktarını Seçin</h2>
+                <button class="close-btn" id="closeModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
                 <div class="amount-options">
-                    <button class="amount-option" data-amount="50">50 TL</button>
-                    <button class="amount-option" data-amount="100">100 TL</button>
-                    <button class="amount-option" data-amount="200">200 TL</button>
-                    <button class="amount-option" data-amount="500">500 TL</button>
-                    <button class="amount-option" data-amount="1000">1000 TL</button>
-                    <button class="amount-option" data-amount="5000">5000 TL</button>
+                    <button class="amount-btn" data-amount="200" data-link="https://www.shopier.com/37920879">
+                        <span class="amount">₺200</span>
+                        <span class="label">Temel Destek</span>
+                    </button>
+                    <button class="amount-btn" data-amount="500" data-link="https://www.shopier.com/37921650">
+                        <span class="amount">₺500</span>
+                        <span class="label">Orta Destek</span>
+                    </button>
+                    <button class="amount-btn" data-amount="1000" data-link="https://www.shopier.com/37921678">
+                        <span class="amount">₺1.000</span>
+                        <span class="label">Büyük Destek</span>
+                    </button>
+                    <button class="amount-btn" data-amount="5000" data-link="https://www.shopier.com/37921691">
+                        <span class="amount">₺5.000</span>
+                        <span class="label">Premium Destek</span>
+                    </button>
                 </div>
-                
                 <div class="payment-info">
-                    <i class="fas fa-info-circle"></i>
-                    <p>Bir miktar seçtiğinizde ödeme sayfasına yönlendirileceksiniz.</p>
-                </div>
-                
-                <div class="custom-amount">
-                    <label for="customAmount">Diğer Miktar (TL):</label>
-                    <div class="input-with-icon">
-                        <input type="number" id="customAmount" min="1" placeholder="Miktar girin ve Enter'a basın">
-                        <i class="fas fa-turkish-lira-sign"></i>
-                    </div>
-                </div>
-                
-                <div class="payment-info">
-                    <i class="fas fa-info-circle"></i>
-                    <p>Bir miktar seçtiğinizde veya özel miktar girip Enter'a bastığınızda ödeme sayfasına yönlendirileceksiniz.</p>
-                </div>
-                
-                <div class="secure-payment">
-                    <i class="fas fa-lock"></i> Güvenli Ödeme
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Shopier güvenli ödeme sistemi ile korunuyorsunuz</span>
                 </div>
             </div>
         </div>
     </div>
-    
+
+    <!-- Success Message -->
+    <div class="success-message" id="successMessage">
+        <div class="success-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>Teşekkürler!</h3>
+            <p>Ödeme sayfasına yönlendiriliyorsunuz...</p>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" id="errorMessage">
+        <div class="error-content">
+            <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>Ödeme Başarısız!</h3>
+            <p>Lütfen tekrar deneyiniz.</p>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
