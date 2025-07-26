@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Modal'ı kapat
                 paymentModal.style.display = 'none';
                 // Shopier ödeme sayfasına yönlendir
-                redirectToShopier(amount);
+                redirectToIyzico(amount);
             }
         });
     });
