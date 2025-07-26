@@ -112,11 +112,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Ödeme sayfasına yönlendirmeden önce kısa bir animasyon göster
         setTimeout(() => {
             // Shopier ödeme sayfasına yönlendirme
-            // Not: Gerçek uygulamada, bu URL kullanıcı tarafından sağlanacak
-            const demoPaymentUrl = shopierUrl || `https://www.shopier.com/demo?amount=${amount}&currency=TRY`;
+            // Doğrudan shopierUrl'yi kullan
             
             // Yeni bir sekmede ödeme sayfasını aç
-            window.open(demoPaymentUrl, '_blank');
+            window.open(shopierUrl, '_blank');
             
             // Kullanıcıya bilgi mesajı göster
             const formattedAmount = formatCurrency(amount);
