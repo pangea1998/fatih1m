@@ -101,7 +101,23 @@ document.addEventListener('DOMContentLoaded', function() {
         addDonation(amount);
         
         // Shopier ödeme sayfası URL'si
-        const shopierUrl = 'https://www.shopier.com/37920879'; // Kullanıcı tarafından sağlanan link
+        let shopierUrl;
+        switch(amount) {
+            case 200:
+                shopierUrl = 'https://www.shopier.com/37920879';
+                break;
+            case 500:
+                shopierUrl = 'https://www.shopier.com/37921650';
+                break;
+            case 1000:
+                shopierUrl = 'https://www.shopier.com/37921678';
+                break;
+            case 5000:
+                shopierUrl = 'https://www.shopier.com/37921691';
+                break;
+            default:
+                shopierUrl = 'https://www.shopier.com/37920879'; // Varsayılan olarak 200 TL linki
+        }
         
         // Animasyon efekti ile kullanıcıya işlemin devam ettiğini göster
         const donateButton = document.getElementById('donateButton');
