@@ -2,6 +2,9 @@
 let currentAmount = 0;
 const targetAmount = 300000;
 
+// LocalStorage key
+const STORAGE_KEY = 'fatih_destek_progress';
+
 // DOM Elements
 const openModalBtn = document.getElementById('openModalBtn');
 const modalOverlay = document.getElementById('modalOverlay');
@@ -17,9 +20,11 @@ const errorMessage = document.getElementById('errorMessage');
 document.addEventListener('DOMContentLoaded', function() {
     initializePage();
     setupEventListeners();
+    checkURLParameters(); // Ödeme dönüşü kontrolü
 });
 
 function initializePage() {
+    loadProgressFromStorage();
     updateProgressBar();
     formatCurrency();
 }
@@ -51,6 +56,28 @@ function setupEventListeners() {
     });
 }
 
+// LocalStorage Functions
+function saveProgressToStorage() {
+    const progressData = {
+        currentAmount: currentAmount,
+        lastUpdate: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progressData));
+}
+
+function loadProgressFromStorage() {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            const progressData = JSON.parse(stored);
+            currentAmount = progressData.currentAmount || 0;
+        }
+    } catch (error) {
+        console.log('Progress yüklenemedi:', error);
+        currentAmount = 0;
+    }
+}
+
 // Modal Functions
 function openModal() {
     modalOverlay.classList.add('active');
@@ -62,37 +89,75 @@ function closeModal() {
     document.body.style.overflow = 'auto';
 }
 
-// Donation Processing
-function processDonation(amount, paymentLink) {
-    // Show success message
-    showSuccessMessage();
-    
-    // Close modal
-    closeModal();
-    
-    // Redirect to payment after a short delay
-    setTimeout(() => {
-        window.open(paymentLink, '_blank');
+// Cross-browser uyumlu yönlendirme
+function redirectToPayment(paymentLink) {
+    // Mobil ve farklı tarayıcılar için uyumlu yönlendirme
+    if (isMobileOrTablet()) {
+        // Mobil cihazlarda aynı sekmede aç
+        window.location.href = paymentLink;
+    } else {
+        // Desktop'ta yeni sekmede aç
+        const newWindow = window.open(paymentLink, '_blank');
         
-        // Simulate payment success for demo (in real app, this would come from payment gateway)
-        setTimeout(() => {
-            handlePaymentResult(true, amount);
-        }, 3000);
-    }, 1500);
+        // Popup engellenirse aynı sekmede aç
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+            window.location.href = paymentLink;
+        }
+    }
 }
 
+// Cihaz tespiti
+function isMobileOrTablet() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           window.innerWidth <= 768;
+}
+
+// Telegram tespiti
+function isTelegram() {
+    return window.Telegram && window.Telegram.WebApp;
+}
+
+// Donation Processing - Düzeltilmiş
+function processDonation(amount, paymentLink) {
+    // Modal'ı kapat
+    closeModal();
+    
+    // Yönlendirme mesajı göster
+    showSuccessMessage();
+    
+    // Ödeme linkine yönlendir
+    setTimeout(() => {
+        redirectToPayment(paymentLink);
+    }, 1500);
+    
+    // ARTIK OTOMATİK PROGRESS GÜNCELLEME YOK!
+    // Progress sadece gerçek ödeme onayı gelince güncellenecek
+}
+
+// Gerçek ödeme sonucu işleme
 function handlePaymentResult(success, amount) {
     if (success) {
-        // Update progress
+        // Progress güncelle
         currentAmount += amount;
         updateProgressBar();
         updateCurrentAmount();
+        saveProgressToStorage(); // LocalStorage'a kaydet
         
-        // Show success notification
-        showNotification('Bağışınız için teşekkürler!', 'success');
+        // Başarı bildirimi
+        showNotification(`₺${amount} bağışınız için teşekkürler! 🙏`, 'success');
+        
+        // Confetti efekti (opsiyonel)
+        if (typeof confetti !== 'undefined') {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
     } else {
-        // Show error message
+        // Hata mesajı
         showErrorMessage();
+        showNotification('Ödeme işlemi başarısız oldu. Lütfen tekrar deneyiniz.', 'error');
     }
 }
 
@@ -103,8 +168,15 @@ function updateProgressBar() {
     progressFill.style.width = percentage + '%';
     progressPercentage.textContent = Math.round(percentage) + '%';
     
-    // Add animation class
+    // Animasyon
     progressFill.style.transition = 'width 1.5s ease-in-out';
+    
+    // %100'e ulaşırsa kutlama
+    if (percentage >= 100) {
+        setTimeout(() => {
+            showNotification('🎉 Hedefimize ulaştık! Teşekkürler! 🎉', 'success');
+        }, 1600);
+    }
 }
 
 function updateCurrentAmount() {
@@ -122,7 +194,6 @@ function formatTurkishLira(amount) {
 }
 
 function formatCurrency() {
-    // Format all currency displays
     const currencyElements = document.querySelectorAll('.amount-value');
     currencyElements.forEach(el => {
         if (el.id === 'currentAmount') {
@@ -147,7 +218,11 @@ function showErrorMessage() {
 }
 
 function showNotification(message, type) {
-    // Create notification element
+    // Mevcut bildirimleri temizle
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notif => notif.remove());
+    
+    // Yeni bildirim oluştur
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.innerHTML = `
@@ -157,7 +232,7 @@ function showNotification(message, type) {
         </div>
     `;
     
-    // Add styles
+    // Stiller
     notification.style.cssText = `
         position: fixed;
         top: 20px;
@@ -171,70 +246,74 @@ function showNotification(message, type) {
         transform: translateX(400px);
         transition: transform 0.3s ease;
         max-width: 300px;
+        font-family: 'Poppins', sans-serif;
     `;
     
     document.body.appendChild(notification);
     
-    // Animate in
+    // Animasyon
     setTimeout(() => {
         notification.style.transform = 'translateX(0)';
     }, 100);
     
-    // Remove after delay
+    // Otomatik kaldırma
     setTimeout(() => {
         notification.style.transform = 'translateX(400px)';
         setTimeout(() => {
-            document.body.removeChild(notification);
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
         }, 300);
-    }, 4000);
+    }, 5000);
 }
 
-// Animation Functions
-function addPulseAnimation(element) {
-    element.style.animation = 'pulse 0.6s ease-in-out';
-    setTimeout(() => {
-        element.style.animation = '';
-    }, 600);
-}
-
-// URL Parameter Handling (for payment returns)
+// URL Parameter Handling - Gerçek ödeme dönüşü
 function checkURLParameters() {
     const urlParams = new URLSearchParams(window.location.search);
-    const paymentStatus = urlParams.get('payment');
-    const amount = urlParams.get('amount');
+    const paymentStatus = urlParams.get('payment_status') || urlParams.get('status');
+    const amount = urlParams.get('amount') || urlParams.get('total_amount');
+    const orderId = urlParams.get('order_id') || urlParams.get('random_nr');
     
-    if (paymentStatus === 'success' && amount) {
+    // Shopier'dan dönen parametreleri kontrol et
+    if (paymentStatus === 'success' && amount && orderId) {
+        // Gerçek ödeme başarılı
         handlePaymentResult(true, parseInt(amount));
-        // Clean URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (paymentStatus === 'failed') {
+        
+        // URL'yi temizle
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        
+    } else if (paymentStatus === 'failed' || paymentStatus === 'error') {
+        // Ödeme başarısız
         handlePaymentResult(false, 0);
-        // Clean URL
-        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // URL'yi temizle
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
     }
 }
 
-// Initialize URL check on page load
-document.addEventListener('DOMContentLoaded', checkURLParameters);
-
-// Smooth scroll for better UX
-function smoothScrollTo(element) {
-    element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-    });
-}
-
-// Add loading states
-function setLoadingState(button, isLoading) {
-    if (isLoading) {
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yönlendiriliyor...';
-    } else {
-        button.disabled = false;
-        button.innerHTML = '<i class="fas fa-hand-holding-heart"></i><span>Bağış Yap</span>';
+// Admin fonksiyonları (test için)
+function resetProgress() {
+    if (confirm('Progress sıfırlansın mı?')) {
+        currentAmount = 0;
+        updateProgressBar();
+        updateCurrentAmount();
+        saveProgressToStorage();
+        showNotification('Progress sıfırlandı', 'success');
     }
 }
+
+// Test için manuel ödeme simülasyonu
+function simulatePayment(amount) {
+    if (confirm(`₺${amount} ödeme simülasyonu yapılsın mı?`)) {
+        handlePaymentResult(true, amount);
+    }
+}
+
+// Konsol komutları (test için)
+window.resetProgress = resetProgress;
+window.simulatePayment = simulatePayment;
 
 // Performance optimization
 function debounce(func, wait) {
@@ -249,10 +328,36 @@ function debounce(func, wait) {
     };
 }
 
-// Add resize handler for responsive adjustments
+// Resize handler
 window.addEventListener('resize', debounce(() => {
-    // Adjust modal position if needed
     if (modalOverlay.classList.contains('active')) {
-        // Recalculate modal positioning
+        // Modal pozisyonunu ayarla
     }
 }, 250));
+
+// Sayfa kapatılırken progress'i kaydet
+window.addEventListener('beforeunload', () => {
+    saveProgressToStorage();
+});
+
+// Telegram Web App desteği
+if (isTelegram()) {
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    
+    // Telegram tema renklerini kullan
+    if (tg.themeParams.bg_color) {
+        document.documentElement.style.setProperty('--tg-bg-color', tg.themeParams.bg_color);
+    }
+    
+    // Ana butonu ayarla
+    tg.MainButton.text = 'Bağış Yap';
+    tg.MainButton.show();
+    
+    tg.MainButton.onClick(() => {
+        openModal();
+    });
+}
+
+console.log('🎯 Fatih Destek Sistemi Yüklendi');
+console.log('📊 Test komutları: resetProgress(), simulatePayment(miktar)');
