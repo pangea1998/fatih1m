@@ -42,13 +42,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (amount > 0) {
                 // Modal'ı kapat
                 paymentModal.style.display = 'none';
-                // iyzico ödeme sayfasına yönlendir
-                redirectToIyzico(amount);
+                // Shopier ödeme sayfasına yönlendir
+                redirectToShopier(amount);
             }
         });
     });
     
-    // Özel miktar alanı için enter tuşuna basıldığında ödeme sayfasına yönlendir
+    // Özel miktar alanı için olan event listener'ı kaldırıyoruz
+    // customAmountInput event listener kodu silinecek
     customAmountInput.addEventListener('keyup', function(event) {
         if (event.key === 'Enter') {
             const amount = parseInt(this.value);
@@ -111,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Ödeme sayfasına yönlendirmeden önce kısa bir animasyon göster
         setTimeout(() => {
-            // Shopier ödeme sayfasına yönlendirme
             // Doğrudan shopierUrl'yi kullan
             
             // Yeni bir sekmede ödeme sayfasını aç
@@ -141,6 +141,73 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 4500);
         }, 800);
     }
+    
+    // Rastgele bir işlem ID'si oluştur
+    function generateTransactionId() {
+        return 'BAGIS_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
+    }
+});
+
+// Shopier ödeme sayfasına yönlendirme fonksiyonu
+function redirectToShopier(amount) {
+    // Bağış yapıldığında ilerleme çubuğunu güncelle
+    addDonation(amount);
+    
+    // Shopier ödeme sayfası URL'leri
+    let shopierUrl;
+    switch(amount) {
+        case 200:
+            shopierUrl = 'https://www.shopier.com/37920879';
+            break;
+        case 500:
+            shopierUrl = 'https://www.shopier.com/37921650';
+            break;
+        case 1000:
+            shopierUrl = 'https://www.shopier.com/37921678';
+            break;
+        case 5000:
+            shopierUrl = 'https://www.shopier.com/37921691';
+            break;
+        default:
+            shopierUrl = 'https://www.shopier.com/37920879'; // Varsayılan olarak 200 TL linki
+    }
+    
+    // Animasyon efekti ile kullanıcıya işlemin devam ettiğini göster
+    const donateButton = document.getElementById('donateButton');
+    const originalText = donateButton.textContent;
+    donateButton.textContent = 'Yönlendiriliyor...';
+    donateButton.style.opacity = '0.7';
+    donateButton.disabled = true;
+    
+    // Ödeme sayfasına yönlendirmeden önce kısa bir animasyon göster
+    setTimeout(() => {
+        // Yeni bir sekmede ödeme sayfasını aç
+        window.open(shopierUrl, '_blank');
+        
+        // Kullanıcıya bilgi mesajı göster
+        const formattedAmount = formatCurrency(amount);
+        const successMessage = document.createElement('div');
+        successMessage.className = 'success-message';
+        successMessage.innerHTML = `
+            <div class="success-icon">✓</div>
+            <h3>${formattedAmount} TL tutarındaki bağışınız için teşekkür ederiz!</h3>
+            <p>Ödeme sayfasına yönlendirildiniz.</p>
+        `;
+        
+        document.querySelector('.container').appendChild(successMessage);
+        
+        // Mesajı 5 saniye sonra kaldır
+        setTimeout(() => {
+            successMessage.classList.add('fade-out');
+            setTimeout(() => {
+                successMessage.remove();
+                donateButton.textContent = originalText;
+                donateButton.style.opacity = '1';
+                donateButton.disabled = false;
+            }, 500);
+        }, 4500);
+    }, 800);
+}
     
     // Rastgele bir işlem ID'si oluştur
     function generateTransactionId() {
